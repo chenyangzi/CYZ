@@ -17,8 +17,8 @@
         body {
             margin: 0;
             background-color: var(--bg-dark);
-            /* 手绘线条星空背景 */
-            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="600" height="600" viewBox="0 0 100 100"><g stroke="%23f0ede5" stroke-width="0.8" fill="none" opacity="0.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12,8 Q15,10 18,12 L15,15 Q12,13 9,11 Z" transform="rotate(-10 12 12)"/><path d="M78,65 L81,63 L84,65 L83,61 L85,58 L81,58 L80,55 L79,58 L75,58 L77,61 Z" transform="rotate(20 80 60) scale(1.1)"/></g></svg>');
+            /* 精致微型星空背景：极细线条 0.2px，透明度 0.15 */
+            background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="600" height="600" viewBox="0 0 100 100"><g stroke="%23f0ede5" stroke-width="0.2" fill="none" opacity="0.15" stroke-linecap="round" stroke-linejoin="round"><path d="M12,8 Q15,10 18,12 L15,15 Q12,13 9,11 Z" transform="translate(10,10) rotate(-10) scale(0.4)"/><path d="M78,65 L81,63 L84,65 L83,61 L85,58 L81,58 L80,55 L79,58 L75,58 L77,61 Z" transform="translate(-15,-15) rotate(25) scale(0.5)"/></g></svg>');
             background-repeat: repeat;
             background-size: 600px 600px;
             font-family: var(--font-main);
@@ -39,20 +39,26 @@
             cursor: pointer; font-size: 18px; z-index: 100; opacity: 0.5;
             transition: opacity 0.3s; filter: url(#rough-edge);
         }
+        #music-control:hover { opacity: 1; }
 
         .main-container { display: flex; flex-direction: column; align-items: center; margin-top: 140px; position: relative; }
 
         .scene { width: var(--dice-size); height: var(--dice-size); perspective: 600px; cursor: pointer; z-index: 10; }
+        .scene:active { transform: scale(0.9); }
+
         .dice {
             width: 100%; height: 100%; position: relative; transform-style: preserve-3d;
             transform: rotateX(-20deg) rotateY(30deg); transition: transform 0.8s var(--bounce-transition);
         }
+
         .dice-face {
-            position: absolute; width: 60px; height: 60px; background: var(--bg-dark);
-            border: 1.5px solid var(--line-color); display: flex; justify-content: center;
-            align-items: center; font-size: 24px; font-weight: bold; border-radius: 10px;
+            position: absolute; width: var(--dice-size); height: var(--dice-size);
+            background: var(--bg-dark); border: 1.5px solid var(--line-color);
+            display: flex; justify-content: center; align-items: center;
+            font-size: 24px; font-weight: bold; border-radius: 10px;
             filter: url(#rough-edge);
         }
+
         .front  { transform: rotateY(0deg) translateZ(30px); }
         .back   { transform: rotateY(180deg) translateZ(30px); }
         .right  { transform: rotateY(90deg) translateZ(30px); }
@@ -66,9 +72,15 @@
             padding: 24px; border-radius: 24px; width: 280px; font-size: 13px;
             box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4); display: none; opacity: 0;
             transform: translateY(15px) scale(0.9); transition: all 0.5s var(--bounce-transition);
+            z-index: 20;
         }
+
         #advice-bubble.active { display: block; opacity: 1; transform: translateY(0) scale(1); }
-        
+        #advice-bubble::after {
+            content: ''; position: absolute; top: 100%; left: 50%; margin-left: -8px;
+            border-width: 8px; border-style: solid; border-color: var(--line-color) transparent transparent transparent;
+        }
+
         .shop-name { font-weight: bold; font-size: 18px; display: block; margin-bottom: 4px; }
         .shop-soul { color: #d44; font-size: 11px; font-weight: bold; margin-bottom: 8px; display: block; }
         .shop-drink { background: rgba(0,0,0,0.05); padding: 8px 12px; border-radius: 8px; margin: 10px 0; font-size: 12px; border-left: 3px solid #222; }
@@ -76,11 +88,11 @@
         #reset-btn {
             margin-top: 40px; padding: 12px 32px; background: transparent;
             color: var(--line-color); border: 1.2px solid var(--line-color);
-            border-radius: 25px; cursor: pointer; opacity: 0; pointer-events: none;
-            filter: url(#rough-edge);
+            border-radius: 25px; font-size: 13px; cursor: pointer; opacity: 0; pointer-events: none;
+            transition: all 0.3s ease; filter: url(#rough-edge);
         }
         #reset-btn.visible { opacity: 0.8; pointer-events: auto; }
-        #history { margin-top: 24px; display: flex; gap: 12px; color: var(--line-color); opacity: 0.4; font-weight: bold; }
+        #history { margin-top: 24px; display: flex; gap: 12px; height: 30px; font-size: 16px; font-weight: bold; color: var(--line-color); opacity: 0.4; }
     </style>
 </head>
 <body>
@@ -92,12 +104,8 @@
         </filter>
     </svg>
 
-    <audio id="bgm" loop>
-        <source src="bgm.mp3" type="audio/mpeg">
-    </audio>
-    <audio id="click-sound">
-        <source src="click-sound.mp3" type="audio/mpeg">
-    </audio>
+    <audio id="bgm" loop><source src="bgm.mp3" type="audio/mpeg"></audio>
+    <audio id="click-sound"><source src="click-sound.mp3" type="audio/mpeg"></audio>
 
     <div id="music-control" onclick="toggleMusic()">🎵</div>
 
@@ -107,7 +115,7 @@
             <span class="shop-soul" id="b-soul"></span>
             <div id="b-desc"></div>
             <div class="shop-drink" id="b-drink"></div>
-            <div id="b-loc" style="font-size: 11px; color: #666; margin-top: 8px;"></div>
+            <div id="b-loc" style="font-size: 11px; color: #666; margin-top: 8px; opacity: 0.8;"></div>
         </div>
 
         <div class="scene" onclick="roll()">
@@ -123,17 +131,16 @@
     </div>
 
     <script>
-        let totalScore = 0;
-        let isAdviceShown = false;
-        let isRolling = false;
-        let isMusicPlaying = false;
+        let totalScore = 0; let isAdviceShown = false; let isRolling = false; let isMusicPlaying = false;
         
         const shanghaiGuide = [
             { name: "Speak Low 彼楼", soul: "日式调酒的魔幻暗门", desc: "穿越器材店的密室，三层楼三重境界。", drink: "特色点：抹茶风味 Bacardi 特调。", loc: "📍 静安区复兴中路579号" },
-            { name: "The Tailor Bar", soul: "静安寺上空的裁缝间", desc: "不设酒单，调酒师如裁缝般为你缝合风味。", drink: "特色点：高空景观配上完全定制化味道。", loc: "📍 静安区华山路2号4楼" },
-            { name: "Ars & Delecto", soul: "进贤路上的日式瑰宝", desc: "银座风格的教科书。黑胶唱片与精准动作。", drink: "特色点：Gimlet，干净清爽。", loc: "📍 黄浦区进贤路222号" },
-            { name: "Epic", soul: "魔都最具活力的屋檐下", desc: "氛围轻松跳跃，主理人Cross的惊喜之作。", drink: "特色点：Black Pearl。", loc: "📍 徐汇区高邮路17号" },
-            { name: "Bar No.3", soul: "兴国路上的温情角落", desc: "不设防的治愈感。灯光克制而温暖。", drink: "特色点：Negroni，经典而厚重。", loc: "📍 徐汇区兴国路" }
+            { name: "The Tailor Bar", soul: "静安寺上空的裁缝间", desc: "俯瞰静安寺繁华。这里不设酒单，量身定制。", drink: "特色点：高空景观配上完全定制化的独一份味道。", loc: "📍 静安区华山路2号4楼" },
+            { name: "Ars & Delecto", soul: "进贤路上的日式瑰宝", desc: "银座风格。黑胶唱片与精准动作，深夜治愈极简主义。", drink: "特色点：Gimlet，干净清爽。", loc: "📍 黄浦区进贤路222号" },
+            { name: "Epic", soul: "魔都最具活力的屋檐下", desc: "氛围轻松跳跃。主理人Cross将上海灵魂注入酒杯。", drink: "特色点：Black Pearl，层次深邃的味觉迷宫。", loc: "📍 徐汇区高邮路17号" },
+            { name: "J.Boroski", soul: "昆虫标本与风味盲盒", desc: "极度私密，无酒单。让调酒师捕捉你当下的情绪。", drink: "特色点：昆虫装饰与绝无仅有的口味定制。", loc: "📍 静安区富民路" },
+            { name: "Co-Sign", soul: "独酌者的静谧港湾", desc: "胶州路上的禅意绿洲。主打纯净口感，适合独处。", drink: "特色点：极简金汤力，通透而纯净。", loc: "📍 静安区胶州路" },
+            { name: "Hush", soul: "思南路上的隐秘‘嘘声’", desc: "黑白色调，极简高级。专注于风味本身。", drink: "特色点：酒体质感非常细腻。", loc: "📍 黄浦区思南路" }
         ];
 
         const dice = document.getElementById('dice');
@@ -145,24 +152,21 @@
         const angleMap = { 1: {x:0, y:0}, 2: {x:-90, y:0}, 3: {x:0, y:-90}, 4: {x:0, y:90}, 5: {x:90, y:0}, 6: {x:180, y:0} };
 
         function toggleMusic() {
-            if (isMusicPlaying) { bgm.pause(); musicControl.innerText = "🔇";
-            } else { bgm.play(); musicControl.innerText = "🎵"; }
+            if (isMusicPlaying) { bgm.pause(); musicControl.innerText = "🔇"; musicControl.style.opacity = 0.4;
+            } else { bgm.play(); musicControl.innerText = "🎵"; musicControl.style.opacity = 1; }
             isMusicPlaying = !isMusicPlaying;
         }
 
         function roll() {
             if (isAdviceShown || isRolling) return;
-            clickSound.currentTime = 0;
-            clickSound.play().catch(e => console.log("音频播放需先交互"));
+            clickSound.currentTime = 0; clickSound.play();
             isRolling = true;
             const result = Math.floor(Math.random() * 6) + 1;
             const randX = (Math.floor(Math.random() * 2) + 2) * 360;
             const randY = (Math.floor(Math.random() * 2) + 2) * 360;
             dice.style.transform = `rotateX(${randX + angleMap[result].x}deg) rotateY(${randY + angleMap[result].y}deg)`;
-
             setTimeout(() => {
-                isRolling = false;
-                totalScore += result;
+                isRolling = false; totalScore += result;
                 const span = document.createElement('span');
                 span.innerText = result + " ";
                 document.getElementById('history').appendChild(span);
